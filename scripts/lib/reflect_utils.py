@@ -452,12 +452,12 @@ POSITIVE_PATTERNS = [
 # Format: (regex_pattern, pattern_name, is_strong)
 #
 # DESIGN NOTES:
-# - These patterns are English-centric as a FAST first-pass filter
-# - Non-English corrections are caught by semantic filtering during /reflect
+# - English patterns as FAST first-pass filter; Chinese patterns added for direct capture
 # - We use STRUCTURAL signals (length, questions, task requests) for language-agnostic filtering
 # - Users can use explicit markers like "remember:" in any language
 #
 CORRECTION_PATTERNS = [
+    # English patterns
     (r"^no[,. ]+", "no,", True),  # Starts with "no," - common correction opener
     (r"^don't\b|^do not\b", "don't", True),  # Starts with don't/do not
     (r"^stop\b|^never\b", "stop/never", True),  # Starts with stop/never
@@ -466,12 +466,22 @@ CORRECTION_PATTERNS = [
     (r"^I meant\b|^I said\b", "I-meant/said", True),  # Clarification
     (r"^I told you\b|^I already told\b", "I-told-you", True),  # Higher confidence
     (r"use .{1,30} not\b", "use-X-not-Y", True),  # "use X not Y" - limited gap
+    # Chinese correction patterns (\b does not work on CJK; use explicit delimiters)
+    (r"^不[，,。.\s]", "不,", True),              # 不，xxx / 不，xxx（纠正开头）
+    (r"^不要|^别用|^别加|^不能", "不要", True),   # 不要xxx / 别用xxx
+    (r"^停止|^不对|^错了|^错误", "错了", True),   # 停止/不对/错了/错误
+    (r"^其实[，,\s]", "其实", False),             # 其实，xxx（弱纠正）
+    (r"^我说的是|^我的意思是|^我是说", "我说的是", True),  # 澄清/重申
+    (r"^我告诉过你|^我已经说过", "我告诉过你", True),      # 较强纠正
+    (r"用.{1,15}而不是|使用.{1,15}而不是", "用X不用Y", True),  # 用X而不是Y
+    (r"^no[，,]", "no，", True),                  # 中英混用：no，
 ]
 
 # Guardrail patterns - "don't do X unless" constraints (highest confidence for corrections)
 # These detect user frustrations about Claude making unwanted changes
 # Format: (regex_pattern, pattern_name, confidence, decay_days)
 GUARDRAIL_PATTERNS = [
+    # English guardrails
     (r"don't (?:add|include|create) .{1,40} unless", "dont-unless-asked", 0.90, 120),
     (r"only (?:change|modify|edit|touch) what I (?:asked|requested|said)", "only-what-asked", 0.90, 120),
     (r"stop (?:refactoring|changing|modifying|editing) (?:unrelated|other|surrounding)", "stop-unrelated", 0.90, 120),
@@ -480,18 +490,30 @@ GUARDRAIL_PATTERNS = [
     (r"leave .{1,30} (?:alone|unchanged|as is)", "leave-alone", 0.85, 90),
     (r"don't (?:add|include) (?:comments|docstrings|type hints|annotations) (?:unless|to code)", "dont-add-annotations", 0.85, 90),
     (r"(?:minimal|minimum|only necessary) changes", "minimal-changes", 0.80, 90),
+    # Chinese guardrails
+    (r"不要.{1,30}除非", "不要-除非", 0.90, 120),                         # 不要XXX除非
+    (r"只(?:修改|更改|改动|改|动)", "只改我要求的", 0.90, 120),  # 只改/只修改我要求的
+    (r"不要(?:重构|乱改|修改|动)(?:无关|其他|周围|不相关)", "不要乱改", 0.90, 120),         # 不要重构无关代码
+    (r"不要(?:过度|多余|额外|不必要)", "不要过度", 0.85, 90),              # 不要过度设计
+    (r"保持.{1,20}(?:不变|原样|不动)", "保持不变", 0.85, 90),             # 保持XXX不变
+    (r"(?:最小化|最少|只做必要的)(?:改动|修改|变更)", "最小改动", 0.80, 90),  # 最小化改动
+    (r"不要(?:添加|加|写)(?:注释|文档|类型|注解)", "不要加注释", 0.85, 90), # 不要添加注释
 ]
 
 # Structural patterns indicating FALSE POSITIVES (language-agnostic)
 # These focus on MESSAGE STRUCTURE rather than specific words
 FALSE_POSITIVE_PATTERNS = [
-    r"\?$",  # Ends with question mark → question, not correction
+    r"[？?]$",  # Ends with question mark (Chinese or English) → question, not correction
     r"^(please|can you|could you|would you|help me)\b",  # Task request openers
     r"(help|fix|check|review|figure out|set up)\s+(this|that|it|the)\b",  # Task verbs
     r"(error|failed|could not|cannot|can't|unable to)\s+\w+",  # Error descriptions
     r"(is|was|are|were)\s+(not|broken|failing)",  # Bug reports
     r"^I (need|want|would like)\b",  # Task requests
     r"^(ok|okay|alright)[,.]?\s+(so|now|let)",  # Task continuations
+    # Chinese false positives
+    r"^(帮我|帮助|请|麻烦).{0,10}(检查|看看|分析|解释|实现|创建|写|做)",  # 任务请求
+    r"^(我想|我需要|我要).{0,5}(实现|创建|完成|添加|修改)",                # 任务意图
+    r"(报错|错误|失败|出错|异常).{0,10}$",                                  # 错误报告结尾
 ]
 
 # Maximum prompt length for live capture (UserPromptSubmit hook)
