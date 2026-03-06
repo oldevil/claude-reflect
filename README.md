@@ -1,10 +1,11 @@
 # claude-reflect
 
-[![GitHub stars](https://img.shields.io/github/stars/BayramAnnakov/claude-reflect?style=flat-square)](https://github.com/BayramAnnakov/claude-reflect/stargazers)
-[![Version](https://img.shields.io/badge/version-2.6.0-blue?style=flat-square)](https://github.com/BayramAnnakov/claude-reflect/releases)
+[![GitHub stars](https://img.shields.io/github/stars/oldevil/claude-reflect?style=flat-square)](https://github.com/oldevil/claude-reflect/stargazers)
+[![Version](https://img.shields.io/badge/version-3.0.0--rc.1-blue?style=flat-square)](https://github.com/oldevil/claude-reflect/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green?style=flat-square)](https://opensource.org/licenses/MIT)
-[![Tests](https://img.shields.io/badge/tests-160%20passing-brightgreen?style=flat-square)](https://github.com/BayramAnnakov/claude-reflect/actions)
-[![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Linux%20%7C%20Windows-lightgrey?style=flat-square)](https://github.com/BayramAnnakov/claude-reflect#platform-support)
+[![Tests](https://img.shields.io/badge/tests-160%20passing-brightgreen?style=flat-square)](https://github.com/oldevil/claude-reflect/actions)
+[![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Linux%20%7C%20Windows-lightgrey?style=flat-square)](https://github.com/oldevil/claude-reflect#platform-support)
+[![Chinese](https://img.shields.io/badge/中文模式-支持-red?style=flat-square)](https://github.com/oldevil/claude-reflect#chinese-mode)
 
 A self-learning system for Claude Code that captures corrections and discovers workflow patterns — turning them into permanent memory and reusable skills.
 
@@ -43,16 +44,17 @@ Example: You've asked "review my productivity" 12 times → suggests creating `/
 | **Permanent Memory** | Corrections sync to CLAUDE.md — Claude remembers across sessions |
 | **Skill Discovery** | Finds repeating patterns in your history → generates commands |
 | **Multi-language** | AI understands corrections in any language |
+| **Chinese Mode** | 原生支持中文纠错、正向反馈和守卫规则（`不要`、`完美！`、`remember:`） |
 | **Skill Improvement** | Corrections during `/deploy` improve the deploy skill itself |
 
 ## Installation
 
 ```bash
 # Add the marketplace
-claude plugin marketplace add bayramannakov/claude-reflect
+claude plugin marketplace add oldevil/claude-reflect
 
 # Install the plugin
-claude plugin install claude-reflect@claude-reflect-marketplace
+claude plugin install claude-reflect@oldevil-claude-reflect-marketplace
 
 # IMPORTANT: Restart Claude Code to activate the plugin
 ```
@@ -124,6 +126,13 @@ Fast pattern matching during sessions detects:
 - **Positive feedback**: `"Perfect!"` / `"Exactly right"` / `"Great approach"`
 - **Explicit markers**: `"remember:"` — highest confidence
 
+**Chinese mode (中文模式):**
+
+- **中文纠错**: `"不要..."` / `"别用..."` / `"停止..."` / `"不对"` / `"错了"` / `"其实，..."`
+- **中文正向反馈**: `"完美！"` / `"很好！"` / `"就是这样！"` / `"对！"` / `"这就是我想要的"`
+- **中文显式标记**: `"remember:"` — 最高置信度（中英通用）
+- **中文守卫规则**: `"不要...除非"` / `"只修改..."` / `"保持...不变"` / `"不要过度..."`
+
 **2. Semantic AI validation (during /reflect)**
 
 When you run `/reflect`, an AI-powered semantic filter:
@@ -132,6 +141,22 @@ When you run `/reflect`, an AI-powered semantic filter:
 - **Cleaner learnings** — extracts concise, actionable statements
 
 Example: A Spanish correction like `"no, usa Python"` is correctly detected even though it doesn't match English patterns.
+
+<a name="chinese-mode"></a>
+### Chinese Mode (中文模式)
+
+本 fork 在原版基础上新增了对中文的原生支持（v3.0.0-rc.1+）：
+
+| 类型 | 实际触发示例 |
+|------|------|
+| 纠错词 | `不要...` / `别用...` / `不对` / `错了` / `停止` / `其实，...` |
+| 澄清/重申 | `我说的是...` / `我的意思是...` / `我告诉过你...` |
+| 用X不用Y | `用...而不是...` / `使用...而不是...` |
+| 正向反馈 | `完美！` / `很好！` / `就是这样！` / `对！` / `这就是我想要的` |
+| 显式标记 | `remember:`（中英通用，最高置信度） |
+| 守卫规则 | `不要...除非` / `只修改...` / `保持...不变` / `不要过度...` / `不要添加注释` |
+
+无需额外配置，安装本 fork 后自动生效。
 
 Each captured learning has a **confidence score** (0.60-0.95). The final score is the higher of regex and semantic confidence.
 
@@ -273,16 +298,16 @@ If you see errors like "Duplicate hooks file detected" or "No such file or direc
 
 ```bash
 # 1. Uninstall the plugin
-claude plugin uninstall claude-reflect@claude-reflect-marketplace
+claude plugin uninstall claude-reflect@oldevil-claude-reflect-marketplace
 
 # 2. Clear both caches (required!)
-rm -rf ~/.claude/plugins/marketplaces/claude-reflect-marketplace
-rm -rf ~/.claude/plugins/cache/claude-reflect-marketplace
+rm -rf ~/.claude/plugins/marketplaces/oldevil-claude-reflect-marketplace
+rm -rf ~/.claude/plugins/cache/oldevil-claude-reflect-marketplace
 
 # 3. Exit Claude Code completely (restart terminal or close app)
 
 # 4. Reinstall
-claude plugin install claude-reflect@claude-reflect-marketplace
+claude plugin install claude-reflect@oldevil-claude-reflect-marketplace
 ```
 
 ### Standard Update
@@ -298,7 +323,7 @@ For normal updates (when no cache issues):
 ## Uninstall
 
 ```bash
-claude plugin uninstall claude-reflect@claude-reflect-marketplace
+claude plugin uninstall claude-reflect@oldevil-claude-reflect-marketplace
 ```
 
 ## File Structure

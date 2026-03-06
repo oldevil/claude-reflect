@@ -1,14 +1,15 @@
 {
-  "name": "claude-reflect-marketplace",
-  "description": "Official marketplace for claude-reflect, a self-learning plugin for Claude Code",
+  "name": "oldevil-claude-reflect-marketplace",
+  "description": "claude-reflect fork with native Chinese mode support — captures corrections in Chinese and English",
   "owner": {
-    "name": "Bayram Annakov"
+    "name": "oldevil",
+    "url": "https://github.com/oldevil"
   },
   "plugins": [
     {
       "name": "claude-reflect",
       "source": "./",
-      "description": "Self-learning system that captures corrections and updates CLAUDE.md"
+      "description": "Self-learning system that captures corrections and updates CLAUDE.md. Supports Chinese mode (中文纠错、正向反馈、守卫规则)."
     }
   ]
 }
