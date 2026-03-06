@@ -446,6 +446,13 @@ POSITIVE_PATTERNS = [
     (r"perfect!|exactly right|that's exactly", "perfect", 0.70, 90),
     (r"that's what I wanted|great approach", "great-approach", 0.70, 90),
     (r"keep doing this|love it|excellent|nailed it", "keep-doing", 0.70, 90),
+    # Chinese positive patterns
+    (r"^完美[！!。\s]|^就是这样[！!。\s]|^正是我想要的", "完美", 0.70, 90),       # 完美！/ 就是这样！
+    (r"^很好[！!。\s]|^非常好[！!。\s]|^太好了[！!。\s]", "很好", 0.70, 90),      # 很好！/ 太好了！
+    (r"^继续这样|^保持这个风格|^就按这个方式", "继续这样", 0.70, 90),             # 继续这样做
+    (r"^对[！!，,。\s]|^对的[！!，,。\s]|^正确[！!，,。\s]", "对", 0.65, 90),    # 对！/ 对的！/ 正确！
+    (r"^这就是我想要的|^这正是我需要的", "这就是我想要的", 0.70, 90),             # 这就是我想要的
+    (r"^好的思路|^好方法|^好方案", "好方法", 0.70, 90),                           # 好的思路/方法
 ]
 
 # Correction patterns (conservative set to minimize false positives)
