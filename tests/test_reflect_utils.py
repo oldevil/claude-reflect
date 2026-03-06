@@ -882,5 +882,109 @@ class TestCaptureLearningFiltering(unittest.TestCase):
         self.assertFalse(should_include_message(msg))
 
 
+class TestChinesePatternDetection(unittest.TestCase):
+    """Tests for Chinese language pattern detection."""
+
+    # --- Correction patterns ---
+    def test_chinese_correction_bu_yao(self):
+        """不要/别用 开头应识别为纠正。"""
+        for text in ["不要用 Flask，用 FastAPI", "别用这个方法"]:
+            with self.subTest(text=text):
+                item_type, patterns, confidence, sentiment, _ = detect_patterns(text)
+                self.assertEqual(item_type, "auto")
+                self.assertEqual(sentiment, "correction")
+
+    def test_chinese_correction_cuo_le(self):
+        """错了/不对/停止 开头应识别为纠正。"""
+        for text in ["错了，应该用异步方式", "不对，重新来", "停止添加多余注释"]:
+            with self.subTest(text=text):
+                item_type, patterns, confidence, sentiment, _ = detect_patterns(text)
+                self.assertEqual(item_type, "auto")
+                self.assertEqual(sentiment, "correction")
+
+    def test_chinese_correction_use_x_not_y(self):
+        """用X而不是Y 应识别为纠正。"""
+        result = detect_patterns("用 FastAPI 而不是 Flask")
+        item_type, patterns, confidence, sentiment, _ = result
+        self.assertEqual(item_type, "auto")
+        self.assertEqual(sentiment, "correction")
+
+    def test_chinese_correction_qishi(self):
+        """其实，xxx 应识别为弱纠正。"""
+        result = detect_patterns("其实，你应该用异步接口")
+        item_type, patterns, confidence, sentiment, _ = result
+        self.assertEqual(item_type, "auto")
+        self.assertEqual(sentiment, "correction")
+
+    # --- Guardrail patterns ---
+    def test_chinese_guardrail_bu_yao_chufei(self):
+        """不要XXX除非 应识别为 guardrail。"""
+        result = detect_patterns("不要添加注释除非我明确要求")
+        item_type, patterns, confidence, sentiment, _ = result
+        self.assertEqual(item_type, "guardrail")
+        self.assertGreaterEqual(confidence, 0.90)
+
+    def test_chinese_guardrail_zhi_gai(self):
+        """只修改我要求的 应识别为 guardrail。"""
+        result = detect_patterns("只修改我要求的部分，不要动其他代码")
+        item_type, patterns, confidence, sentiment, _ = result
+        self.assertEqual(item_type, "guardrail")
+
+    def test_chinese_guardrail_bu_yao_luan_gai(self):
+        """不要重构无关代码 应识别为 guardrail。"""
+        result = detect_patterns("不要重构无关的代码")
+        item_type, patterns, confidence, sentiment, _ = result
+        self.assertEqual(item_type, "guardrail")
+
+    # --- Positive patterns ---
+    def test_chinese_positive_wan_mei(self):
+        """完美！应识别为 positive。"""
+        result = detect_patterns("完美！就是这个效果")
+        item_type, patterns, confidence, sentiment, _ = result
+        self.assertEqual(item_type, "positive")
+        self.assertEqual(sentiment, "positive")
+
+    def test_chinese_positive_hen_hao(self):
+        """太好了！应识别为 positive。"""
+        result = detect_patterns("太好了！继续保持")
+        item_type, patterns, confidence, sentiment, _ = result
+        self.assertEqual(item_type, "positive")
+        self.assertEqual(sentiment, "positive")
+
+    def test_chinese_positive_jiu_shi_wo_yao_de(self):
+        """这就是我想要的 应识别为 positive。"""
+        result = detect_patterns("这就是我想要的效果")
+        item_type, patterns, confidence, sentiment, _ = result
+        self.assertEqual(item_type, "positive")
+        self.assertEqual(sentiment, "positive")
+
+    # --- False positive filters ---
+    def test_chinese_false_positive_question_fullwidth(self):
+        """全角问号结尾应被过滤。"""
+        result = detect_patterns("这个方法有什么优点？")
+        item_type, _, _, _, _ = result
+        self.assertIsNone(item_type)
+
+    def test_chinese_false_positive_task_request(self):
+        """帮我/请 开头的任务请求应被过滤。"""
+        for text in ["帮我检查一下这段代码", "请实现一个登录功能", "麻烦看看这个报错"]:
+            with self.subTest(text=text):
+                item_type, _, _, _, _ = detect_patterns(text)
+                self.assertIsNone(item_type)
+
+    def test_chinese_false_positive_error_report(self):
+        """错误报告结尾应被过滤。"""
+        result = detect_patterns("运行后出现了报错")
+        item_type, _, _, _, _ = result
+        self.assertIsNone(item_type)
+
+    def test_chinese_false_positive_question_particle(self):
+        """以疑问助词结尾（嗎/呢/か）应被过滤。"""
+        for text in ["你能帮我做这个吗", "这样写对吗", "这个方法怎么用呢"]:
+            with self.subTest(text=text):
+                item_type, _, _, _, _ = detect_patterns(text)
+                self.assertIsNone(item_type)
+
+
 if __name__ == "__main__":
     unittest.main()
